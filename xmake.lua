@@ -1,16 +1,10 @@
 add_rules("plugin.compile_commands.autoupdate", { outputdir = "build" })
 set_languages("c++latest")
 
-target("logger")
-    set_kind("static")
-    add_files("src/logger.cc")
-    -- add_includedirs("./include")
-
 target("test")
     set_kind("binary")
     add_files("test/main.cc")
-    -- add_includedirs("./include")
-    add_deps("logger")
+    add_includedirs("./include")
 
 
 --

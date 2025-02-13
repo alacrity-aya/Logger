@@ -1,7 +1,13 @@
-#include "../src/logger.cc"
+#include "logger.h"
 #include <print>
+#include <string>
+#include <string_view>
+#include <thread>
+#include <vector>
 
-int main(int argc, char* argv[])
+#define NUM 5
+
+int main(int /*argc*/, char* /*argv*/[])
 {
     logger::FileAppender::ptr appender1 = std::make_shared<logger::FileAppender>("../../../../a.txt");
 
@@ -9,10 +15,20 @@ int main(int argc, char* argv[])
 
     auto logger = logger::Logger::get_instance();
 
-    logger->add_appender(appender1);
-    logger->add_appender(appender2);
+    logger->set_priority(logger::LogPriority::Error).add_appender(appender2).add_appender(appender1);
 
-    logger->trace("this{} is{} fatal msg{}", 1, 2, 3);
+    std::vector<std::thread> threads {};
+    threads.reserve(NUM);
+    for (int i = 0; i < NUM; i++) {
+        threads.emplace_back([&]() {
+            logger->error("this thread{} called", std::this_thread::get_id());
+            logger->fatal("this thread{} called", std::this_thread::get_id());
+        });
+    }
+    for (auto& thread : threads) {
+        thread.join();
+    }
 
-    std::println("main function ended");
+    std::string str { "{}" };
+    logger->fatal(str, 1);
 }
