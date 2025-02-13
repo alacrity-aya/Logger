@@ -12,6 +12,7 @@
 #include <ostream>
 #include <print>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace logger {
@@ -45,8 +46,8 @@ protected:
 class FileAppender : public LogAppender {
 public:
     using ptr = std::shared_ptr<FileAppender>;
-    FileAppender(std::string filename)
-        : _filename { filename }
+    explicit FileAppender(std::string filename)
+        : _filename { std::move(filename) }
     {
     }
 
@@ -104,8 +105,8 @@ public:
 
     void log(std::string_view message_priority_str, LogPriority message_priority, std::string message) override
     {
-
         if (_priority <= message_priority) {
+            std::println("{}\t{}", message_priority_str, message);
         }
     }
 };
