@@ -13,6 +13,7 @@
 #include <ostream>
 #include <print>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -125,7 +126,7 @@ private:
     // TODO:每一种apprenders设置一个线程?
 
 public:
-    void add_appender(LogAppender::ptr& appender)
+    void add_appender(const LogAppender::ptr appender)
     {
         _apprenders.emplace_back(appender);
     }
@@ -135,10 +136,15 @@ public:
         _priority = new_priority;
     }
 
-#define XX(func, arg, priority)                    \
-    void func(const char* message)                 \
-    {                                              \
-        log(#arg, LogPriority::priority, message); \
+    // std::string format_string(std::string_view runtime_format_string, auto... val)
+    // {
+    //     return std::format(std::runtime_format(runtime_format_string), val...);
+    // }
+
+#define XX(func, arg, priority)                                                                            \
+    void func(std::string_view runtime_format_string, auto... val)                                         \
+    {                                                                                                      \
+        log(#arg, LogPriority::priority, std::format(std::runtime_format(runtime_format_string), val...)); \
     }
 
     XX(trace, [Trace]\t, Trace)
@@ -151,7 +157,7 @@ public:
 #undef XX
 
 private:
-    void log(const char* message_priority_str, LogPriority message_priority, const char* message) const
+    void log(const char* message_priority_str, LogPriority message_priority, std::string message) const
     {
         std::ranges::for_each(_apprenders, [&](const auto& appender) {
             std::unique_lock<std::mutex> lock(_mtx);

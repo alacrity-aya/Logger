@@ -1,12 +1,17 @@
 add_rules("plugin.compile_commands.autoupdate", { outputdir = "build" })
 set_languages("c++latest")
--- target("1")
---     set_kind("binary")
---     add_files("1.cc")
 
-target("2")
+target("logger")
+    set_kind("static")
+    add_files("src/logger.cc")
+    -- add_includedirs("./include")
+
+target("test")
     set_kind("binary")
-    add_files("main.cc")
+    add_files("test/main.cc")
+    -- add_includedirs("./include")
+    add_deps("logger")
+
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io

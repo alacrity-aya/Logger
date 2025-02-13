@@ -24,10 +24,7 @@ public:
     {
         std::cout << _instance.get() << std::endl;
     }
-    ~Singleton()
-    {
-        std::cout << "this is singleton destruct" << std::endl;
-    }
+    ~Singleton() = default;
 };
 template <typename T>
 std::shared_ptr<T> Singleton<T>::_instance = nullptr;

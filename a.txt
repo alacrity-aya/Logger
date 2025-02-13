@@ -1,2 +1,3 @@
-[CRITICAL]:123231232
-[CRITICAL]:	123231232
+[Fatal]		this is fatal msg
+[Fatal]		this is fatal msg
+[trace]	 	this1 is2 fatal msg3
