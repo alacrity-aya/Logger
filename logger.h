@@ -19,12 +19,12 @@
 namespace logger {
 
 enum class LogPriority : uint8_t {
-    TRACE = 0,
-    DEBUG = 1,
-    INFO = 2,
-    WARN = 3,
-    ERROR = 4,
-    FATAL = 5,
+    Trace = 0,
+    Debug = 1,
+    Info = 2,
+    Warn = 3,
+    Error = 4,
+    Fatal = 5,
 };
 
 class LogAppender {
@@ -107,7 +107,7 @@ public:
     void log(std::string_view message_priority_str, LogPriority message_priority, std::string message) override
     {
         if (_priority <= message_priority) {
-            std::println("{}\t{}", message_priority_str, message);
+            std::println("{}{}", message_priority_str, message);
         }
     }
 };
@@ -119,14 +119,15 @@ public:
     using ptr = std::shared_ptr<Logger>;
 
 private:
-    LogPriority _priority { LogPriority::TRACE };
-    std::mutex _mtx;
+    LogPriority _priority { LogPriority::Trace };
+    mutable std::mutex _mtx;
     std::vector<LogAppender::ptr> _apprenders;
     // TODO:每一种apprenders设置一个线程?
 
 public:
-    void add_appender(LogAppender::ptr appender)
+    void add_appender(LogAppender::ptr& appender)
     {
+        _apprenders.emplace_back(appender);
     }
 
     void set_priority(LogPriority new_priority)
@@ -134,52 +135,29 @@ public:
         _priority = new_priority;
     }
 
-    template <typename... Args>
-    void trace(const char* message, Args... args)
-    {
-        log("[Trace]\t", LogPriority::TRACE, message, args...);
+#define XX(func, arg, priority)                    \
+    void func(const char* message)                 \
+    {                                              \
+        log(#arg, LogPriority::priority, message); \
     }
 
-    template <typename... Args>
-    void debug(const char* message, Args... args)
+    XX(trace, [Trace]\t, Trace)
+    XX(debug, [Debug]\t, Debug)
+    XX(info, [Info]\t, Info)
+    XX(warn, [Warn]\t, Warn)
+    XX(error, [Error]\t, Error)
+    XX(fatal, [Fatal]\t, Fatal)
 
-    {
-        log("[Debug]\t", LogPriority::DEBUG, message, args...);
-    }
-
-    template <typename... Args>
-    void info(const char* message, Args... args)
-    {
-        log("[Info]\t", LogPriority::INFO, message, args...);
-    }
-
-    template <typename... Args>
-    void warn(const char* message, Args... args)
-    {
-        log("[Warn]\t", LogPriority::WARN, message, args...);
-    }
-
-    template <typename... Args>
-    void error(const char* message, Args... args)
-    {
-        log("[Error]\t", LogPriority::ERROR, message, args...);
-    }
-
-    template <typename... Args>
-    void critical(const char* message, Args... args)
-    {
-        log("[Critical]\t", LogPriority::FATAL, message, args...);
-    }
+#undef XX
 
 private:
-    template <typename... Args>
-    void log(const char* message_priority_str, LogPriority message_priority, const char* message)
+    void log(const char* message_priority_str, LogPriority message_priority, const char* message) const
     {
-        std::for_each(_apprenders.begin(), _apprenders.end(), [&](const LogAppender::ptr& appender) {
+        std::ranges::for_each(_apprenders, [&](const auto& appender) {
             std::unique_lock<std::mutex> lock(_mtx);
             appender->log(message_priority_str, message_priority, message);
         });
     }
 };
 
-}
+} // namespace
