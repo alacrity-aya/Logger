@@ -2,6 +2,7 @@
 
 #include "singleton.h"
 #include <algorithm>
+#include <array>
 #include <expected>
 #include <format>
 #include <fstream>
@@ -101,12 +102,13 @@ class Logger : public Singleton<Logger> {
 public:
     using ptr = std::shared_ptr<Logger>;
 
-private:
-    LogPriority _priority { LogPriority::Trace };
-    mutable std::mutex _mtx;
-    std::vector<LogAppender::ptr> _apprenders;
-
 public:
+    Logger& enable_time_recording()
+    {
+        _enable_time_recording = true;
+        return *this;
+    }
+
     Logger& add_appender(const LogAppender::ptr& appender)
     {
         _apprenders.emplace_back(appender);
@@ -137,13 +139,44 @@ public:
 #undef XX
 
 private:
-    void log(const char* message_priority_str, LogPriority message_priority, std::string message) const
+    std::expected<std::string, std::string> get_current_time_string()
     {
+        auto now = std::chrono::system_clock::now();
+        time_t now_time = std::chrono::system_clock::to_time_t(now);
+        tm local_time = *std::localtime(&now_time);
+
+        // char buffer[100];
+        constexpr size_t buf_length = 1000;
+        std::array<char, buf_length> buffer {};
+        if (0 == strftime(buffer.data(), buf_length, "%Y-%m-%d %H:%M:%S", &local_time)) {
+            std::unexpected("fail to get currenttime");
+        }
+        return std::string(buffer.data());
+    }
+
+    void log(std::string message_priority_str, LogPriority message_priority, std::string message)
+    {
+
+        if (_enable_time_recording) {
+
+            if (auto ret = get_current_time_string(); ret.has_value()) {
+                auto str = std::format("{}\t", ret.value());
+                message_priority_str += str;
+            } else {
+                std::println(std::cerr, "{}", ret.error());
+            }
+        }
+
         std::ranges::for_each(_apprenders, [&](const auto& appender) {
             std::unique_lock<std::mutex> lock(_mtx);
             appender->log(message_priority_str, message_priority, message);
         });
     }
+
+    LogPriority _priority { LogPriority::Trace };
+    mutable std::mutex _mtx;
+    std::vector<LogAppender::ptr> _apprenders;
+    bool _enable_time_recording { false };
 };
 
 } // namespace

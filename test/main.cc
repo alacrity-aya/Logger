@@ -15,7 +15,7 @@ int main(int /*argc*/, char* /*argv*/[])
 
     auto logger = logger::Logger::get_instance();
 
-    logger->set_priority(logger::LogPriority::Error).add_appender(appender2).add_appender(appender1);
+    logger->set_priority(logger::LogPriority::Error).add_appender(appender2).add_appender(appender1).enable_time_recording();
 
     std::vector<std::thread> threads {};
     threads.reserve(NUM);
