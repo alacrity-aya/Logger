@@ -158,13 +158,17 @@ private:
     {
 
         if (_enable_time_recording) {
-
+#if 1
             if (auto ret = get_current_time_string(); ret.has_value()) {
                 auto str = std::format("{}\t", ret.value());
                 message_priority_str += str;
             } else {
                 std::println(std::cerr, "{}", ret.error());
             }
+#else // WARNING: why the following code cannot compile?
+            auto now = std::chrono::system_clock::now();
+            std::string time_str = std::format("{:%Y-%m-%d %H:%M:%S\t}", now);
+#endif
         }
 
         std::ranges::for_each(_apprenders, [&](const auto& appender) {

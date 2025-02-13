@@ -6,6 +6,10 @@ target("test")
     add_files("test/main.cc")
     add_includedirs("./include")
 
+target("time")
+    set_kind("binary")
+    add_files("test/time.cc")
+
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
