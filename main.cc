@@ -1,6 +1,4 @@
 #include "logger.h"
-#include <expected>
-#include <memory>
 #include <print>
 
 int main(int argc, char* argv[])
@@ -10,4 +8,6 @@ int main(int argc, char* argv[])
 
     logger::StdoutAppender::ptr appender = std::make_shared<logger::StdoutAppender>();
     appender->log("[CRITICAL]:", logger::LogPriority::FATAL, "123231232");
+
+    auto it = logger::Logger::get_instance();
 }

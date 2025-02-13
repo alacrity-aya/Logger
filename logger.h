@@ -1,5 +1,6 @@
 #pragma once
 
+#include "singleton.h"
 #include <algorithm>
 #include <cstdint>
 #include <expected>
@@ -111,66 +112,68 @@ public:
     }
 };
 
-class Logger {
+class Logger : public Singleton<Logger> {
+    friend class Singleton<Logger>;
+
 public:
     using ptr = std::shared_ptr<Logger>;
 
 private:
-    static LogPriority _priority;
-    static std::mutex _mtx;
-    static std::vector<LogAppender::ptr> _apprenders;
+    LogPriority _priority { LogPriority::TRACE };
+    std::mutex _mtx;
+    std::vector<LogAppender::ptr> _apprenders;
     // TODO:每一种apprenders设置一个线程?
 
 public:
-    static void add_appender(LogAppender::ptr appender)
+    void add_appender(LogAppender::ptr appender)
     {
     }
 
-    static void set_priority(LogPriority new_priority)
+    void set_priority(LogPriority new_priority)
     {
         _priority = new_priority;
     }
 
     template <typename... Args>
-    static void trace(const char* message, Args... args)
+    void trace(const char* message, Args... args)
     {
         log("[Trace]\t", LogPriority::TRACE, message, args...);
     }
 
     template <typename... Args>
-    static void debug(const char* message, Args... args)
+    void debug(const char* message, Args... args)
 
     {
         log("[Debug]\t", LogPriority::DEBUG, message, args...);
     }
 
     template <typename... Args>
-    static void info(const char* message, Args... args)
+    void info(const char* message, Args... args)
     {
         log("[Info]\t", LogPriority::INFO, message, args...);
     }
 
     template <typename... Args>
-    static void warn(const char* message, Args... args)
+    void warn(const char* message, Args... args)
     {
         log("[Warn]\t", LogPriority::WARN, message, args...);
     }
 
     template <typename... Args>
-    static void error(const char* message, Args... args)
+    void error(const char* message, Args... args)
     {
         log("[Error]\t", LogPriority::ERROR, message, args...);
     }
 
     template <typename... Args>
-    static void critical(const char* message, Args... args)
+    void critical(const char* message, Args... args)
     {
         log("[Critical]\t", LogPriority::FATAL, message, args...);
     }
 
 private:
     template <typename... Args>
-    static void log(const char* message_priority_str, LogPriority message_priority, const char* message)
+    void log(const char* message_priority_str, LogPriority message_priority, const char* message)
     {
         std::for_each(_apprenders.begin(), _apprenders.end(), [&](const LogAppender::ptr& appender) {
             std::unique_lock<std::mutex> lock(_mtx);
@@ -178,8 +181,5 @@ private:
         });
     }
 };
-
-LogPriority Logger::_priority = LogPriority::TRACE;
-std::mutex Logger::_mtx {};
 
 }
