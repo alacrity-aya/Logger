@@ -2,7 +2,7 @@
 
 **Head only** library. It spend me a whole to complete.
 
-inspired by sylar:logger
+inspired by sylar::logger
 
 # how to use?
 
