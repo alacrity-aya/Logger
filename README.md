@@ -1,6 +1,6 @@
 # A simple and thread-safe logging library written in C++23 
 
-**Head only** library. It spend me a whole to complete.
+**Head only** library. 
 
 inspired by sylar::logger
 
